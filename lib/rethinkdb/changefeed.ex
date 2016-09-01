@@ -204,7 +204,7 @@ defmodule RethinkDB.Changefeed do
 
   def connect(_info, state = %{query: query, conn: conn}) do
     case RethinkDB.run(query, conn, %{timeout: :infinity}) do
-      msg = %RethinkDB.Feed{} ->
+      {:ok, msg} = {:ok, %RethinkDB.Feed{}} ->
         mod = get_in(state, [:opts, :mod])
         feed_state = Dict.get(state, :feed_state)
         {:next, feed_state} = mod.handle_update(msg.data, feed_state)
@@ -319,7 +319,8 @@ defmodule RethinkDB.Changefeed do
 
   defp next(f = %RethinkDB.Feed{}) do
     Task.async fn ->
-      RethinkDB.next(f)
+      {:ok, resp} = RethinkDB.next(f)
+      resp
     end
   end
 end
